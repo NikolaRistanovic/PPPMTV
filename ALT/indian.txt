@@ -2,14 +2,16 @@ import pyaudio
 import wave
 import matplotlib.pyplot as plt
 import numpy
+from numpy.fft import fft, fftfreq, ifft
  
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 48000
 CHUNK = 1024
-RECORD_SECONDS = 1
+RECORD_SECONDS = 3
 WAVE_OUTPUT_FILENAME = "Prijem.wav"
- 
+n = 143360
+
 audio = pyaudio.PyAudio()
  
 #start
@@ -41,22 +43,12 @@ waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'r')
 
 raw = waveFile.readframes(-1)
 raw = numpy.frombuffer(raw,numpy.int16)
-#time = numpy.linspace(0, len(raw)/RATE, num=len(raw))
+time = numpy.linspace(0, len(raw)/(RATE*2), num=len(raw))
 
+freqs = fftfreq(n, RATE)
+mask = freqs > 0
+fft_vals = fft(raw)
+fft_theo = 2.0 * numpy.abs(fft_vals/n)
 
-tstep = 1/RATE
-N = int(RATE * RECORD_SECONDS)
-
-t = numpy.linspace(0, (N-1)*tstep, N)
-fstep = RATE/N
-f = numpy.linspace(0,(N-1)*fstep, N)
-
-X = numpy.fft.fft(raw)
-X_mag = numpy.abs(X) / N
-
-f_plot = f[0:int(N/2+1)]
-X_mag_plot = 2 * X_mag[0:int(N/2+1)]
-X_mag_plot[0] = X_mag_plot[0] / 2
-
-plt.plot(f_plot, X_mag_plot)
+plt.plot(time,fft_theo[mask])
 plt.show()
